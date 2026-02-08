@@ -1,0 +1,95 @@
+@startuml
+title Endterm Project - Student Course Enrollment (Class Diagram)
+
+skinparam classAttributeIconSize 0
+
+package "devmax.model" {
+  class Student {
+    - Long id
+    - String fullName
+    - String email
+    - Integer age
+  }
+
+  class Course {
+    - Long id
+    - String name
+    - Integer credits
+  }
+
+  class Enrollment {
+    - Long id
+    - Long studentId
+    - Long courseId
+    - java.time.Instant enrolledAt
+  }
+}
+
+package "devmax.dto" {
+  class EnrollmentCreateRequest {
+    - Long studentId
+    - Long courseId
+  }
+}
+
+package "devmax.controller" {
+  class StudentController
+  class CourseController
+  class EnrollmentController
+}
+
+package "devmax.service" {
+  class StudentService
+  class CourseService
+  class EnrollmentService
+}
+
+package "devmax.repository" {
+  class StudentRepository
+  class CourseRepository
+  class EnrollmentRepository
+}
+
+package "devmax.utils" {
+  class RowMappers <<utility>>
+}
+
+package "devmax.exception" {
+  class GlobalExceptionHandler <<RestControllerAdvice>>
+}
+
+package "devmax.patterns" {
+  class CourseFactory <<Factory>>
+  class EnrollmentBuilder <<Builder>>
+  class LoggerService <<Singleton>>
+}
+
+' --- Relations: Controller -> Service -> Repository
+StudentController --> StudentService
+CourseController --> CourseService
+EnrollmentController --> EnrollmentService
+
+StudentService --> StudentRepository
+CourseService --> CourseRepository
+EnrollmentService --> EnrollmentRepository
+
+' --- Repository uses RowMappers
+StudentRepository ..> RowMappers
+CourseRepository ..> RowMappers
+EnrollmentRepository ..> RowMappers
+
+' --- DTO usage
+EnrollmentController ..> EnrollmentCreateRequest
+
+' --- Domain relations
+Enrollment --> Student : uses studentId
+Enrollment --> Course  : uses courseId
+
+' --- Pattern usage examples
+CourseService ..> CourseFactory : create Course
+EnrollmentService ..> EnrollmentBuilder : build Enrollment
+StudentService ..> LoggerService : log
+CourseService ..> LoggerService : log
+EnrollmentService ..> LoggerService : log
+
+@enduml

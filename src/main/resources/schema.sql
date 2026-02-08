@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS students (
+  id BIGSERIAL PRIMARY KEY,
+  full_name VARCHAR(200) NOT NULL,
+  email VARCHAR(200) NOT NULL UNIQUE,
+  age INT
+);
+
+CREATE TABLE IF NOT EXISTS courses (
+  id BIGSERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  credits INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS enrollments (
+  id BIGSERIAL PRIMARY KEY,
+  student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  enrolled_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_enrollment UNIQUE (student_id, course_id)
+);
