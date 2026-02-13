@@ -1,9 +1,9 @@
 package devmax.repository;
 
 import devmax.dto.EnrollmentCreateRequest;
+import devmax.dto.EnrollmentUpdateRequest;
 import devmax.model.Enrollment;
 import devmax.utils.RowMappers;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +12,7 @@ import java.util.Optional;
 
 @Repository
 public class EnrollmentRepository {
+
     private final JdbcTemplate jdbc;
 
     public EnrollmentRepository(JdbcTemplate jdbc) {
@@ -24,26 +25,39 @@ public class EnrollmentRepository {
     }
 
     public Optional<Enrollment> findById(Long id) {
-        try {
-            String sql = "SELECT id, student_id, course_id, enrolled_at FROM enrollments WHERE id = ?";
-            return Optional.ofNullable(jdbc.queryForObject(sql, RowMappers.enrollmentRowMapper(), id));
-        } catch (EmptyResultDataAccessException ex) {
-            return Optional.empty();
-        }
+        String sql = "SELECT id, student_id, course_id, enrolled_at FROM enrollments WHERE id = ?";
+        List<Enrollment> list = jdbc.query(sql, RowMappers.enrollmentRowMapper(), id);
+        return list.stream().findFirst();
     }
 
     public Long create(EnrollmentCreateRequest req) {
-        String sql = "INSERT INTO enrollments(student_id, course_id) VALUES (?, ?) RETURNING id";
+        String sql = """
+                INSERT INTO enrollments(student_id, course_id)
+                VALUES (?, ?)
+                RETURNING id
+                """;
         return jdbc.queryForObject(sql, Long.class, req.getStudentId(), req.getCourseId());
     }
 
-    public boolean update(Long id, EnrollmentCreateRequest req) {
-        String sql = "UPDATE enrollments SET student_id = ?, course_id = ? WHERE id = ?";
-        return jdbc.update(sql, req.getStudentId(), req.getCourseId(), id) > 0;
+    public boolean update(Long id, EnrollmentUpdateRequest req) {
+        String sql = """
+                UPDATE enrollments
+                SET student_id = ?, course_id = ?
+                WHERE id = ?
+                """;
+        int updated = jdbc.update(sql, req.getStudentId(), req.getCourseId(), id);
+        return updated > 0;
     }
 
-    public boolean delete(Long id) {
+    public boolean deleteById(Long id) {
         String sql = "DELETE FROM enrollments WHERE id = ?";
-        return jdbc.update(sql, id) > 0;
+        int deleted = jdbc.update(sql, id);
+        return deleted > 0;
+    }
+
+    public boolean existsById(Long id) {
+        String sql = "SELECT EXISTS(SELECT 1 FROM enrollments WHERE id = ?)";
+        Boolean exists = jdbc.queryForObject(sql, Boolean.class, id);
+        return exists != null && exists;
     }
 }

@@ -1,14 +1,14 @@
 package devmax.dto;
 
 public class CourseCreateRequest {
-    private String name;
-    private Integer credits;
+    private String title;
+    private String description;
 
     public CourseCreateRequest() {}
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public Integer getCredits() { return credits; }
-    public void setCredits(Integer credits) { this.credits = credits; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

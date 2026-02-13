@@ -1,6 +1,8 @@
 package devmax.service;
 
 import devmax.dto.EnrollmentCreateRequest;
+import devmax.dto.EnrollmentUpdateRequest;
+import devmax.exception.NotFoundException;
 import devmax.model.Enrollment;
 import devmax.repository.CourseRepository;
 import devmax.repository.EnrollmentRepository;
@@ -11,41 +13,55 @@ import java.util.List;
 
 @Service
 public class EnrollmentService {
-    private final EnrollmentRepository repo;
-    private final StudentRepository studentRepo;
-    private final CourseRepository courseRepo;
 
-    public EnrollmentService(EnrollmentRepository repo, StudentRepository studentRepo, CourseRepository courseRepo) {
-        this.repo = repo;
-        this.studentRepo = studentRepo;
-        this.courseRepo = courseRepo;
+    private final EnrollmentRepository enrollmentRepository;
+    private final StudentRepository studentRepository;
+    private final CourseRepository courseRepository;
+
+    public EnrollmentService(EnrollmentRepository enrollmentRepository,
+                             StudentRepository studentRepository,
+                             CourseRepository courseRepository) {
+        this.enrollmentRepository = enrollmentRepository;
+        this.studentRepository = studentRepository;
+        this.courseRepository = courseRepository;
     }
 
-    public List<Enrollment> all() { return repo.findAll(); }
-
-    public Enrollment one(Long id) {
-        return repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Enrollment not found: " + id));
+    public List<Enrollment> getAll() {
+        return enrollmentRepository.findAll();
     }
 
-    public Enrollment create(EnrollmentCreateRequest req) {
-        studentRepo.findById(req.getStudentId()).orElseThrow(() -> new IllegalArgumentException("Student not found: " + req.getStudentId()));
-        courseRepo.findById(req.getCourseId()).orElseThrow(() -> new IllegalArgumentException("Course not found: " + req.getCourseId()));
-
-        Long id = repo.create(req);
-        return one(id);
+    public Enrollment getById(Long id) {
+        return enrollmentRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Enrollment not found: id=" + id));
     }
 
-    public Enrollment update(Long id, EnrollmentCreateRequest req) {
-        studentRepo.findById(req.getStudentId()).orElseThrow(() -> new IllegalArgumentException("Student not found: " + req.getStudentId()));
-        courseRepo.findById(req.getCourseId()).orElseThrow(() -> new IllegalArgumentException("Course not found: " + req.getCourseId()));
+    public Long create(EnrollmentCreateRequest req) {
+        if (!studentRepository.existsById(req.getStudentId())) {
+            throw new NotFoundException("Student not found: id=" + req.getStudentId());
+        }
+        if (!courseRepository.existsById(req.getCourseId())) {
+            throw new NotFoundException("Course not found: id=" + req.getCourseId());
+        }
+        return enrollmentRepository.create(req);
+    }
 
-        boolean ok = repo.update(id, req);
-        if (!ok) throw new IllegalArgumentException("Enrollment not found: " + id);
-        return one(id);
+    public Enrollment update(Long id, EnrollmentUpdateRequest req) {
+        if (!enrollmentRepository.existsById(id)) {
+            throw new NotFoundException("Enrollment not found: id=" + id);
+        }
+        if (!studentRepository.existsById(req.getStudentId())) {
+            throw new NotFoundException("Student not found: id=" + req.getStudentId());
+        }
+        if (!courseRepository.existsById(req.getCourseId())) {
+            throw new NotFoundException("Course not found: id=" + req.getCourseId());
+        }
+
+        enrollmentRepository.update(id, req);
+        return getById(id);
     }
 
     public void delete(Long id) {
-        boolean ok = repo.delete(id);
-        if (!ok) throw new IllegalArgumentException("Enrollment not found: " + id);
+        boolean ok = enrollmentRepository.deleteById(id);
+        if (!ok) throw new NotFoundException("Enrollment not found: id=" + id);
     }
 }

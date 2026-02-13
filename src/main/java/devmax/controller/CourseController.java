@@ -1,32 +1,48 @@
 package devmax.controller;
 
 import devmax.dto.CourseCreateRequest;
+import devmax.dto.CourseUpdateRequest;
 import devmax.model.Course;
 import devmax.service.CourseService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
-    private final CourseService service;
 
-    public CourseController(CourseService service) {
-        this.service = service;
+    private final CourseService courseService;
+
+    public CourseController(CourseService courseService) {
+        this.courseService = courseService;
     }
 
     @GetMapping
-    public List<Course> all() { return service.all(); }
+    public List<Course> getAll() {
+        return courseService.getAll();
+    }
 
     @GetMapping("/{id}")
-    public Course one(@PathVariable Long id) { return service.one(id); }
+    public Course getById(@PathVariable Long id) {
+        return courseService.getById(id);
+    }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody CourseCreateRequest req) {
-        Long id = service.create(req);
-        return ResponseEntity.created(URI.create("/courses/" + id)).body(service.one(id));
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long create(@RequestBody CourseCreateRequest req) {
+        return courseService.create(req);
+    }
+
+    @PutMapping("/{id}")
+    public Course update(@PathVariable Long id, @RequestBody CourseUpdateRequest req) {
+        return courseService.update(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        courseService.delete(id);
     }
 }

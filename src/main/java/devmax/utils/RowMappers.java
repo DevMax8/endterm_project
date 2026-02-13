@@ -5,7 +5,7 @@ import devmax.model.Enrollment;
 import devmax.model.Student;
 import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class RowMappers {
 
@@ -14,26 +14,29 @@ public class RowMappers {
                 rs.getLong("id"),
                 rs.getString("full_name"),
                 rs.getString("email"),
-                (Integer) rs.getObject("age")
+                rs.getInt("age")
         );
     }
 
     public static RowMapper<Course> courseRowMapper() {
         return (rs, rowNum) -> new Course(
                 rs.getLong("id"),
-                rs.getString("name"),
-                rs.getInt("credits")
+                rs.getString("title"),
+                rs.getString("description")
         );
     }
 
     public static RowMapper<Enrollment> enrollmentRowMapper() {
         return (rs, rowNum) -> {
-            Timestamp ts = rs.getTimestamp("enrolled_at");
+            LocalDateTime enrolledAt = null;
+            var ts = rs.getTimestamp("enrolled_at");
+            if (ts != null) enrolledAt = ts.toLocalDateTime();
+
             return new Enrollment(
                     rs.getLong("id"),
                     rs.getLong("student_id"),
                     rs.getLong("course_id"),
-                    ts == null ? null : ts.toLocalDateTime()
+                    enrolledAt
             );
         };
     }

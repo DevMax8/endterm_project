@@ -1,43 +1,53 @@
 package devmax.controller;
 
 import devmax.dto.EnrollmentCreateRequest;
+import devmax.dto.EnrollmentUpdateRequest;
 import devmax.model.Enrollment;
 import devmax.service.EnrollmentService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/enrollments")
 public class EnrollmentController {
-    private final EnrollmentService service;
 
-    public EnrollmentController(EnrollmentService service) {
-        this.service = service;
+    private final EnrollmentService enrollmentService;
+
+    public EnrollmentController(EnrollmentService enrollmentService) {
+        this.enrollmentService = enrollmentService;
     }
 
+    // GET /enrollments
     @GetMapping
-    public List<Enrollment> all() { return service.all(); }
+    public List<Enrollment> getAll() {
+        return enrollmentService.getAll();
+    }
 
+    // GET /enrollments/{id}
     @GetMapping("/{id}")
-    public Enrollment one(@PathVariable Long id) { return service.one(id); }
+    public Enrollment getById(@PathVariable Long id) {
+        return enrollmentService.getById(id);
+    }
 
+    // POST /enrollments
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody EnrollmentCreateRequest req) {
-        Enrollment created = service.create(req);
-        return ResponseEntity.created(URI.create("/enrollments/" + created.getId())).body(created);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long create(@RequestBody EnrollmentCreateRequest req) {
+        return enrollmentService.create(req);
     }
 
+    // PUT /enrollments/{id}
     @PutMapping("/{id}")
-    public Enrollment update(@PathVariable Long id, @RequestBody EnrollmentCreateRequest req) {
-        return service.update(id, req);
+    public Enrollment update(@PathVariable Long id, @RequestBody EnrollmentUpdateRequest req) {
+        return enrollmentService.update(id, req);
     }
 
+    // DELETE /enrollments/{id}
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        enrollmentService.delete(id);
     }
 }

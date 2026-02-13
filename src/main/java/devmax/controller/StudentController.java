@@ -1,32 +1,48 @@
 package devmax.controller;
 
 import devmax.dto.StudentCreateRequest;
+import devmax.dto.StudentUpdateRequest;
 import devmax.model.Student;
 import devmax.service.StudentService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/students")
 public class StudentController {
-    private final StudentService service;
 
-    public StudentController(StudentService service) {
-        this.service = service;
+    private final StudentService studentService;
+
+    public StudentController(StudentService studentService) {
+        this.studentService = studentService;
     }
 
     @GetMapping
-    public List<Student> all() { return service.all(); }
+    public List<Student> getAll() {
+        return studentService.getAll();
+    }
 
     @GetMapping("/{id}")
-    public Student one(@PathVariable Long id) { return service.one(id); }
+    public Student getById(@PathVariable Long id) {
+        return studentService.getById(id);
+    }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody StudentCreateRequest req) {
-        Long id = service.create(req);
-        return ResponseEntity.created(URI.create("/students/" + id)).body(service.one(id));
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long create(@RequestBody StudentCreateRequest req) {
+        return studentService.create(req);
+    }
+
+    @PutMapping("/{id}")
+    public Student update(@PathVariable Long id, @RequestBody StudentUpdateRequest req) {
+        return studentService.update(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        studentService.delete(id);
     }
 }
